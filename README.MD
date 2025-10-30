@@ -1,4 +1,6 @@
-# Task Management API (GraphQL)
+# Task Management API (GraphQL) 
+
+**This project is a work in progress**
 
 *A simple task list API built with **FastAPI**, **Strawberry GraphQL**, **SQLAlchemy**, and **SQLite**.*
 
