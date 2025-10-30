@@ -1,0 +1,1 @@
+# Nothing here - default init file to use directory as package.
