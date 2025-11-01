@@ -1,7 +1,5 @@
 # Task Management API (GraphQL) 
 
-**This project is a work in progress**
-
 *A simple task list API built with **FastAPI**, **Strawberry GraphQL**, **SQLAlchemy**, and **SQLite**.*
 
 ---
@@ -77,7 +75,7 @@ GraphQL endpoint available at: [http://localhost:8000/task-api](http://localhost
 ---
 
 ## Project Structure
-On cloning the project will take the following file structure:
+This project will have thefollowing file structure:
 ```
 app/
 ├── __init__.py
@@ -90,6 +88,74 @@ requirements.txt
 README.md
 ```
 
+**NOTE:** taskData.db included in .gitignore is created automatically
+
+---
+
+## GraphQL API Structure
+The following queries are implemented.
+
+### Queries
+| Name | Arguments  | Returns | Description |
+| --- | --- | --- | --- |
+| `tasks` | `search?: str` | `List[TaskType]` | Returns all tasks optionally filtered by title |
+
+### Mutationss
+| Name | Input | Returns | Description  |
+| --- | --- | --- | --- |
+| `addTask` | `TaskInput(title: str!)` | `TaskType` | Creates a new task with given title |
+
+---
+## Usage guide for Queries & Mutations
+
+### Query All Tasks (No filter)
+```graphql
+query {
+  tasks {
+    id
+    title
+    completed
+    createdAt
+    updatedAt
+  }
+}
+```
+
+### Query All Tasks (Optional Filter)
+```graphql
+query {
+  tasks(search: "fix") {
+    id
+    title
+    completed
+    createdAt
+    updatedAt
+  }
+}
+```
+
+### Query All Tasks but return just the id, title and status
+```graphql
+query {
+  tasks {
+    id
+    title
+    completed
+  }
+}
+```
+
+### Mutation to Add Task
+```graphql
+mutation {
+  addTask(input: { title: "Commit to git" }) {
+    id
+    title
+    completed
+    createdAt
+  }
+}
+```
 ## Handling Complex Error Scenarios
 The base GraphQL schema has simple operations that assume minimal failure paths or error cases. Below are some proposals for improving the robustness of this simple API:
 
