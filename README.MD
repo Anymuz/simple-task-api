@@ -2,8 +2,6 @@
 
 *A simple task list API built with **FastAPI**, **Strawberry GraphQL**, **SQLAlchemy**, and **SQLite**.*
 
----
-
 ## Overview
 This GraphQL API provides CRUD functionality for managing a list of tasks. Users can:
 
@@ -11,14 +9,14 @@ This GraphQL API provides CRUD functionality for managing a list of tasks. Users
 * Query sngle tasks by ID or filter them by title.
 
 Bonus features include:
-(todo - add 2 bonus operatiions)
+* A mutation to update task title
+* A query to retrieve task completion statistics
+* Added optional search argumment to query only completed/inncomplete tasks
 
 The system uses:
 * **FastAPI** as the web server
 * **Strawberry GraphQL** for schema definition
 * **SQLAlchemy** as ORM (backed by **SQLite**)
- 
- ---
 
 ## Tech Stack
 * **Python 3.11**
@@ -26,8 +24,6 @@ The system uses:
 * **Strawberry GraphQL** - defines the schema and handles query/mutation resolution
 * **SQLAlchemy** - ORM layer for SQLite
 * **SQLite** - persistent storage backend (via file-based DB)
-
----
 
 ## Setup Instructions
 Clone this repo or download and unzip into directory on system and ensure installation of Python 3.10+ beforehand.
@@ -39,8 +35,7 @@ This project requires the following libraries:
 - `sqlalchemy`
 - `aiosqlite`
 - `uvicorn`
-
-Using python virtual environment (venv) and pip allows for quick and easy environment set up, depending on system of choice use the following commands in the terminal.
+They are listed in requirements.txt so that using python virtual environment (venv) and pip allows for quick and easy environment set up. Depending on system of choice use the following commands in the terminal.
 
 #### Unix/macOS (bash/zsh)
 
@@ -64,6 +59,12 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+  If you encounter a PowerShell execution policy error, run:
+  >
+  > ```powershell
+  > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+  > ```
+
 ### Run the App
 Start the server, `taskData.db` will be created with first mutation.
 ```bash
@@ -71,8 +72,6 @@ uvicorn app.main:app --reload
 ```
 
 GraphQL endpoint available at: [http://localhost:8000/task-api](http://localhost:8000/task-api)
-
----
 
 ## Project Structure
 This project will have thefollowing file structure:
@@ -88,97 +87,45 @@ requirements.txt
 README.md
 ```
 
-**NOTE:** taskData.db included in .gitignore is created automatically
-
----
+**NOTE:** `taskData.db` included in .gitignore is created automatically.
 
 ## GraphQL API Structure
 The following queries are implemented.
 
 ### Queries
-| Name | Arguments  | Returns | Description |
+| Name | Input Arguments  | Returns | Description |
 | --- | --- | --- | --- |
-| `tasks` | `TaskListInput(search: str)?` | `List[TaskType]` | Returns all tasks optionally filtered by title, returns empty list if none |
+| `tasks` | `TaskListInput(search?: str, completed?: bool) or None` | `List[TaskType]` | Returns all tasks optionally filtered by title, returns empty list if none |
 | `task` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Returns a single task base on given ID or null if no task has that ID |
+| `taskStats` | --- | `TaskStatsType` | Type contains count of total, complete and incomplete tasks |
 
 ### Mutationss
-| Name | Input | Returns | Description  |
+| Name | Input Arguents | Returns | Description  |
 | --- | --- | --- | --- |
 | `addTask` | `NewTaskInput(title: str!)` | `TaskType` | Creates a new task with given title |
-| `toggleTask` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Swaps value completed and returns task or null if ID mismatch |
-| `deleteTask` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Removes task with given ID and returns task  or null if ID mismatch |
+| `toggleTask` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Swaps value completed and returns task or null |
+| `deleteTask` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Removes task with given ID and returns task  or null |
+| `updateTask` | `UpdateTaskInput(id: int!, title: str!)` | `TaskType or null` | Updates a task's title and returns task or null |
 
----
-## Usage guide for Queries & Mutations
+## Usage guide for Queries & Mutations (TODO: Produce usage examples guide)
+The API has aformentioned query and mutation operations to use, for a full set of detailed examples and optional input combinations, refer to the [Task API Usage Guide](./USAGE.md).
 
-### Query All Tasks (No filter)
-```graphql
-query {
-  tasks {
-    id
-    title
-    completed
-    createdAt
-    updatedAt
-  }
-}
-```
-
-### Query All Tasks (Optional Filter)
-```graphql
-query {
-  tasks(search: "fix") {
-    id
-    title
-    completed
-    createdAt
-    updatedAt
-  }
-}
-```
-
-### Query All Tasks but return just the id, title and status
-```graphql
-query {
-  tasks {
-    id
-    title
-    completed
-  }
-}
-```
-
-### Mutation to Add Task
-```graphql
-mutation {
-  addTask(input: { title: "Commit to git" }) {
-    id
-    title
-    completed
-    createdAt
-  }
-}
-```
-**TODO:** Update more usage examples when finished.
----
+## Design Aspects
+* All queries and mutations will use a pre-define input type.
+* DateTime fields use `Optional` in the GraphQL task type to ensure that nullable fields or optional filters  don't raise errors. This is because the feilds fror `created_at` and `updated_at` are set on update to the database not during API request.
+* All the search filters for `tasks` are optonal, the query can be called without any input provided. 
+* For `tasks` query the use of `List[TaskType]` will always return an array even if empty, to match GraphQL design best practices.
+* `taskStats` query and `updateTask` are introduced as two **bonus operations**.
+* An optional search parameter `completed` filters completed tasks from non completed tasks, added as a parameter of 'tasks' query as to meet within spec allowance of 2 additional operations.
 
 ## Handling Complex Error Scenarios
 The base GraphQL schema has simple operations that assume minimal failure paths or error cases. Below are some proposals for improving the robustness of this simple API:
 
 TODO:(discuss here)
 
----
-
-## Notes on Design Decisions
-TODO:(notes here)
-
----
-
 ## License
 
 MIT (You may fork and build on this template)
-
----
 
 ## Author Notes
 

@@ -33,6 +33,14 @@ class TaskType:
     created_at: Optional[str]
     updated_at: Optional[str]
 # End type
+
+# Define TaskStats type, used for total tasks, number completed and number pending
+@strawberry.type
+class TaskStats:
+    total: int
+    completed: int
+    pending: int
+# End type
 #---------------------------------
 
 #-------[ GraphQL Inputs ]--------
@@ -40,16 +48,26 @@ class TaskType:
 @strawberry.input
 class TaskListInput:
     search: Optional[str] = None
+    completed: Optional[bool] = None
+# End input
 
 # Input for operations on a task by ID
 @strawberry.input
 class TaskIdInput:
     id: int
+# End input
 
 # Input for creating tasks, takes title only
 @strawberry.input
 class NewTaskInput:
     title: str
+# End input
+
+# Input for updating task title by ID
+@strawberry.input
+class UpdateTaskInput:
+    id: int
+    new_title: str
 # End input
 #---------------------------------
 
@@ -67,8 +85,13 @@ class Query:
             query = query.filter(Task.title.contains(input.search)) 
         # End if
 
+        # Filter by completed status if provided
+        if input and input.completed is not None: # Check for None explicitly to allow False value
+            query = query.filter(Task.completed == input.completed)
+        # End if
+
         return query.all() # Return all matching tasks
-    # End def
+    # End query
 
     # Retrieve a single task by its ID
     @strawberry.field
@@ -76,8 +99,21 @@ class Query:
         db: Session = next(get_db()) 
         task = db.query(Task).filter(Task.id == input.id).first() # Query for task by given ID, acts like SELECT * FROM tasks WHERE id = id
         return task
-    # End def
-# End queries
+    # End query
+
+    # Bonus: Get task statistics
+    @strawberry.field
+    def task_stats(self, info: Info) -> TaskStats: # Return TaskStats type, requires no inputs -> filter results in query.
+        db: Session = next(get_db()) 
+
+        # Calculate stats with count queries -> act like SELECT COUNT(*) FROM tasks where completed = true/false etc queries
+        total = db.query(Task).count() # Total tasks
+        completed = db.query(Task).filter(Task.completed == True).count() # Number of completed
+        pending = total - completed # Number of uncompleted (without needing needing extra query)
+
+        return TaskStats(total=total, completed=completed, pending=pending) # Assign to TaskStats type and return
+    # End query
+# End class
 #---------------------------------
 
 #-------[ GraphQL Mutations ]-------
@@ -99,11 +135,13 @@ class Mutation:
     def toggle_task(self, info: Info, input: TaskIdInput) -> Optional[TaskType]:
         db: Session = next(get_db()) 
         task = db.query(Task).filter(Task.id == input.id).first()
+
         #  If task found, toggle its completed status
         if task:
-            task.completed = not task.completed  # always set completed status to be opposite of current
+            task.completed = not task.completed  # Always set completed status to be opposite of current
             db.commit()
             db.refresh(task) # Refresh to updated timestamp
+        # End if 
         return task
     # End mutation
 
@@ -112,11 +150,38 @@ class Mutation:
     def delete_task(self, info: Info, input: TaskIdInput) -> Optional[TaskType]:
         db: Session = next(get_db()) 
         task = db.query(Task).filter(Task.id == input.id).first()
+
         if task:
             db.delete(task) # Delete the task from the db session
             db.commit() # Commit the deletion to remove task permanently
             return task
-        return None
+        # End if
+        return task
+    # End mutation
+
+    # Bonus: Update a task name by it's ID
+    @strawberry.mutation
+    def update_task(self, info: Info, input: UpdateTaskInput) -> Optional[TaskType]:
+        db: Session = next(get_db()) 
+        task = db.query(Task).filter(Task.id == input.id).first()
+        
+        # Usual check for task existence
+        if task:
+            new_title = input.new_title.strip() # Remove leading/trailing whitespace -> Makes empty string even if user inputs spaces only
+
+            # Check if new title is empty and raise error if so
+            if not new_title:
+                raise GraphQLError("Task title cannot be empty.") # Raise error if new title is empty
+            #End if
+
+            task.title = new_title # Update the task title
+            db.commit()
+            db.refresh(task) # Refresh the updated_at timestamp
+        # End if
+        return task
+   # End mutation
+
+
 # End class
 #----------------------------------
 
