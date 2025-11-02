@@ -180,8 +180,6 @@ class Mutation:
         # End if
         return task
    # End mutation
-
-
 # End class
 #----------------------------------
 
