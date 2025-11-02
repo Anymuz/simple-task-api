@@ -184,8 +184,3 @@ class Mutation:
 #----------------------------------
 
 schema = strawberry.Schema(query=Query, mutation=Mutation) # Create the schema with query and mutation
-
-''''todo  next - Add bonus features:  
-- update_task mutation 
-- task_stats query?
-- additional filters for tasks query  (completed status, date ranges?) '''
