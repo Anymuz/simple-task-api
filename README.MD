@@ -98,12 +98,15 @@ The following queries are implemented.
 ### Queries
 | Name | Arguments  | Returns | Description |
 | --- | --- | --- | --- |
-| `tasks` | `search?: str` | `List[TaskType]` | Returns all tasks optionally filtered by title |
+| `tasks` | `TaskListInput(search: str)?` | `List[TaskType]` | Returns all tasks optionally filtered by title, returns empty list if none |
+| `task` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Returns a single task base on given ID or null if no task has that ID |
 
 ### Mutationss
 | Name | Input | Returns | Description  |
 | --- | --- | --- | --- |
-| `addTask` | `TaskInput(title: str!)` | `TaskType` | Creates a new task with given title |
+| `addTask` | `NewTaskInput(title: str!)` | `TaskType` | Creates a new task with given title |
+| `toggleTask` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Swaps value completed and returns task or null if ID mismatch |
+| `deleteTask` | `TaskIDInput(ID: int!)` | `TaskType or Null` | Removes task with given ID and returns task  or null if ID mismatch |
 
 ---
 ## Usage guide for Queries & Mutations
@@ -156,15 +159,18 @@ mutation {
   }
 }
 ```
+**TODO:** Update more usage examples when finished.
+---
+
 ## Handling Complex Error Scenarios
 The base GraphQL schema has simple operations that assume minimal failure paths or error cases. Below are some proposals for improving the robustness of this simple API:
 
-(discuss here)
+TODO:(discuss here)
 
 ---
 
 ## Notes on Design Decisions
-(notes here)
+TODO:(notes here)
 
 ---
 
