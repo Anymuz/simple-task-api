@@ -7,7 +7,7 @@ import strawberry
 from typing import List, Optional
 from strawberry.types import Info
 from sqlalchemy.orm import Session
-from graphql import GraphQLError
+from strawberry.exceptions import GraphQLError
 
 # Import Task model and database session local
 from .models import Task
@@ -140,7 +140,7 @@ class Mutation:
         if task:
             task.completed = not task.completed  # Always set completed status to be opposite of current
             db.commit()
-            db.refresh(task) # Refresh to updated timestamp
+            db.refresh(task) # Refresh to update timestamp
         # End if 
         return task
     # End mutation
@@ -183,4 +183,5 @@ class Mutation:
 # End class
 #----------------------------------
 
-schema = strawberry.Schema(query=Query, mutation=Mutation) # Create the schema with query and mutation
+# Create the schema with query and mutation operations set by class:
+schema = strawberry.Schema(query=Query, mutation=Mutation) 
